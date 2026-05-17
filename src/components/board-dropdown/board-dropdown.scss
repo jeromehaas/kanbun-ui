@@ -1,0 +1,45 @@
+@reference "tailwindcss";
+
+.board-dropdown {
+  @apply relative inline-flex;
+
+  .board-dropdown__trigger {
+    @apply inline-flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-sm font-medium cursor-pointer max-w-[240px] bg-[var(--dropdown-bg)] border border-[var(--dropdown-border)] text-[var(--dropdown-text)] [font-family:inherit] [transition:var(--transition)] hover:opacity-85;
+  }
+
+  .board-dropdown__label {
+    @apply flex-1 overflow-hidden text-ellipsis whitespace-nowrap;
+  }
+
+  .board-dropdown__chevron {
+    @apply flex-shrink-0 text-[var(--icon-color)] [transition:transform_0.15s_ease];
+  }
+
+  .board-dropdown__chevron--rotated {
+    @apply rotate-180;
+  }
+}
+
+.board-dropdown__list {
+  @apply overflow-hidden rounded-xl bg-[var(--dropdown-bg)] border border-[var(--dropdown-border)] shadow-[0_8px_32px_rgba(0,0,0,0.14)] [animation:boardDropdownIn_0.12s_ease];
+}
+
+.board-dropdown__option {
+  @apply flex items-center justify-between gap-2 px-3.5 py-2.5 text-sm cursor-pointer text-[var(--dropdown-text)] [font-family:'Inter',sans-serif] [transition:background_0.1s] hover:bg-[var(--menu-hover)];
+}
+
+.board-dropdown__option--active {
+  @apply font-semibold text-[var(--accent)];
+}
+
+.board-dropdown__option-name {
+  @apply flex-1 overflow-hidden text-ellipsis whitespace-nowrap;
+}
+
+.board-dropdown__check {
+  @apply flex-shrink-0 text-[var(--accent)];
+}
+
+.board-dropdown__empty {
+  @apply px-3.5 py-3 text-sm text-[var(--text-muted)] [font-family:'Inter',sans-serif];
+}

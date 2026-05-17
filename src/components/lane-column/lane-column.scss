@@ -1,0 +1,73 @@
+@reference "tailwindcss";
+
+.lane-column {
+  @apply flex flex-col flex-shrink-0 rounded-xl p-4 w-[280px] min-w-[280px] max-w-[280px] bg-[var(--bg-column)] border border-[var(--column-border)];
+
+  .lane-column__header {
+    @apply flex-shrink-0 mb-3;
+  }
+
+  .lane-column__header-top {
+    @apply flex items-center justify-between gap-2;
+  }
+
+  .lane-column__title {
+    @apply flex-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-base font-bold text-[var(--col-title)];
+  }
+
+  .lane-column__edit-input {
+    @apply flex-1 text-base font-bold rounded-md px-2 py-1 outline-none [font-family:inherit] bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--input-border-focus)] shadow-[var(--input-focus-shadow)];
+  }
+
+  .lane-column__subtitle {
+    @apply text-xs mt-1 text-[var(--tasks-count)];
+  }
+
+  .lane-column__controls {
+    @apply flex items-center gap-0.5 flex-shrink-0;
+  }
+
+  .lane-column__btn-icon {
+    @apply w-6 h-6 text-xs rounded-md inline-flex items-center justify-center cursor-pointer bg-transparent border-0 text-[var(--icon-color)] [font-family:inherit] [transition:var(--transition)] hover:bg-[var(--accent-light)] hover:text-[var(--text-primary)];
+  }
+
+  .lane-column__menu-wrap {
+    @apply relative;
+  }
+
+  .lane-column__dropdown {
+    @apply absolute overflow-hidden top-[calc(100%+4px)] right-0 min-w-[140px] bg-[var(--menu-bg)] border border-[var(--menu-border)] rounded-[10px] shadow-[0_4px_20px_rgba(0,0,0,0.12)] z-[100];
+  }
+
+  .lane-column__menu-item {
+    @apply px-3.5 py-2.5 text-sm cursor-pointer text-[var(--text-primary)] [transition:var(--transition)] hover:bg-[var(--menu-hover)];
+  }
+
+  .lane-column__menu-item--danger {
+    @apply text-[var(--danger-text)] hover:bg-[rgba(231,76,111,0.08)];
+  }
+
+  .lane-column__task-list {
+    @apply flex-1 flex flex-col gap-3 overflow-y-auto min-h-[40px] max-h-[calc(100vh-220px)];
+  }
+
+  .lane-column__task-ghost {
+    @apply opacity-40 bg-[var(--accent-light)] border-2 border-dashed border-[var(--accent)];
+  }
+
+  .lane-column__task-chosen {
+    @apply shadow-[0_8px_24px_rgba(107,92,231,0.3)];
+  }
+
+  .lane-column__task-drag {
+    @apply rotate-1 shadow-[0_12px_32px_rgba(0,0,0,0.3)];
+  }
+
+  .lane-column__footer {
+    @apply flex-shrink-0 mt-2;
+  }
+
+  .lane-column__add-task-btn {
+    @apply w-full py-3 text-sm text-center cursor-pointer bg-transparent border-0 text-[var(--add-task-text)] [font-family:inherit] [transition:var(--transition)] hover:opacity-75;
+  }
+}

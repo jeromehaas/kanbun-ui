@@ -1,0 +1,45 @@
+@reference "tailwindcss";
+
+.task-modal {
+  @apply fixed inset-0 flex items-start justify-center pt-[28vh] bg-[var(--modal-overlay)] z-[1000] [animation:taskModalFadeIn_0.15s_ease];
+
+  .task-modal__dialog {
+    @apply w-full max-w-[480px] rounded-2xl p-8 bg-[var(--modal-bg)] shadow-[0_20px_60px_rgba(0,0,0,0.15)] [animation:taskModalSlideUp_0.2s_ease];
+  }
+
+  .task-modal__title {
+    @apply text-xl font-bold mb-6 text-[var(--card-title)];
+  }
+
+  .task-modal__form {
+    @apply flex flex-col;
+  }
+
+  .task-modal__field {
+    @apply flex flex-col mb-4;
+  }
+
+  .task-modal__label {
+    @apply text-sm font-medium mb-1.5 text-[var(--card-title)];
+  }
+
+  .task-modal__input {
+    @apply w-full rounded-lg px-3.5 py-2.5 text-sm border border-[var(--input-border)] bg-transparent text-[var(--text-primary)] outline-none [font-family:inherit] [transition:var(--transition)] placeholder:text-[var(--text-muted)] focus:border-[var(--input-border-focus)] focus:shadow-[var(--input-focus-shadow)];
+  }
+
+  .task-modal__input--textarea {
+    @apply resize-y;
+  }
+
+  .task-modal__actions {
+    @apply flex justify-end items-center mt-2;
+  }
+
+  .task-modal__btn-cancel {
+    @apply text-sm font-medium px-4 py-2.5 rounded-lg mr-1 bg-transparent border-0 text-[var(--btn-cancel-text)] cursor-pointer [font-family:inherit] [transition:var(--transition)] hover:opacity-75;
+  }
+
+  .task-modal__btn-save {
+    @apply text-sm font-semibold px-6 py-2.5 rounded-lg bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] border-0 cursor-pointer [font-family:inherit] [transition:var(--transition)] hover:opacity-90;
+  }
+}

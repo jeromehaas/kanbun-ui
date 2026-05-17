@@ -1,0 +1,25 @@
+@reference "tailwindcss";
+
+.task-card {
+  @apply flex flex-col cursor-pointer rounded-xl p-4 bg-[var(--bg-card)] border border-[var(--card-border)] shadow-[var(--card-shadow)] [transition:var(--transition)];
+
+  &:hover {
+    @apply -translate-y-px bg-[var(--bg-card-hover)] shadow-[0_4px_12px_rgba(0,0,0,0.08)];
+  }
+
+  .task-card__badge {
+    @apply self-start text-xs font-semibold rounded-md px-2 py-0.5 mb-2.5 bg-[var(--badge-bg)] text-[var(--badge-text)];
+  }
+
+  .task-card__title {
+    @apply text-sm font-semibold leading-snug mb-1.5 break-words text-[var(--card-title)];
+  }
+
+  .task-card__details-label {
+    @apply text-xs font-medium mb-1 text-[var(--details-label)];
+  }
+
+  .task-card__description {
+    @apply text-sm font-normal leading-relaxed break-words text-[var(--card-desc)] line-clamp-3;
+  }
+}

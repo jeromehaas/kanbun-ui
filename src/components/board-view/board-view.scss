@@ -1,0 +1,37 @@
+@reference "tailwindcss";
+
+.board-view {
+  @apply flex flex-col flex-1 overflow-hidden h-full;
+
+  .board-view__lanes {
+    @apply flex flex-row flex-1 gap-4 overflow-x-auto overflow-y-hidden items-start p-6;
+  }
+
+  .board-view__add-lane {
+    @apply flex-shrink-0 w-[280px] min-w-[280px];
+  }
+
+  .board-view__add-lane-btn {
+    @apply w-full flex items-center justify-center text-sm font-medium cursor-pointer rounded-xl min-h-[56px] px-6 py-4 bg-[var(--add-lane-bg)] border border-dashed border-[var(--add-lane-border)] text-[var(--add-lane-text)] [font-family:inherit] [transition:var(--transition)] hover:opacity-85;
+  }
+
+  .board-view__add-lane-form {
+    @apply flex flex-col gap-2.5 rounded-xl p-4 bg-[var(--bg-column)] border border-[var(--column-border)];
+  }
+
+  .board-view__lane-input {
+    @apply w-full rounded-lg px-3.5 py-2.5 text-sm outline-none border border-[var(--input-border)] bg-[var(--bg-card)] text-[var(--text-primary)] [font-family:inherit] [transition:var(--transition)] focus:border-[var(--input-border-focus)] focus:shadow-[var(--input-focus-shadow)];
+  }
+
+  .board-view__form-actions {
+    @apply flex gap-2 justify-end;
+  }
+
+  .board-view__btn-primary {
+    @apply inline-flex items-center px-3.5 py-2 rounded-lg text-sm font-medium cursor-pointer bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] border-0 [font-family:inherit] [transition:var(--transition)] hover:opacity-90;
+  }
+
+  .board-view__btn-ghost {
+    @apply inline-flex items-center px-3.5 py-2 rounded-lg text-sm font-medium cursor-pointer bg-transparent border-0 text-[var(--btn-cancel-text)] [font-family:inherit] [transition:var(--transition)] hover:opacity-75;
+  }
+}

@@ -1,0 +1,161 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg-page: #F4F5F7;
+  --bg-header: #FFFFFF;
+  --header-border: #E8E8EE;
+  --bg-column: #F7F8FA;
+  --column-border: #E2E4E9;
+  --bg-card: #FFFFFF;
+  --card-border: #E2E4E9;
+  --card-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  --badge-bg: #F0EEFB;
+  --badge-text: #6B5CE7;
+  --card-title: #1A1A2E;
+  --details-label: #6C6C8A;
+  --card-desc: #4A4A68;
+  --col-title: #1A1A2E;
+  --tasks-count: #8A8AA3;
+  --accent: #6B5CE7;
+  --accent-hover: #5a4dd4;
+  --accent-light: rgba(107, 92, 231, 0.12);
+  --btn-primary-bg: #6B5CE7;
+  --btn-primary-text: #FFFFFF;
+  --btn-cancel-text: #4A4A68;
+  --add-lane-bg: #F0EEFB;
+  --add-lane-text: #6B5CE7;
+  --add-lane-border: #C8C0F0;
+  --add-task-text: #6C6C8A;
+  --brand-text: #6B5CE7;
+  --dropdown-bg: #F0EEFB;
+  --dropdown-border: #D8D5F0;
+  --dropdown-text: #1A1A2E;
+  --icon-color: #9090A7;
+  --danger-text: #E74C6F;
+  --modal-bg: #FFFFFF;
+  --modal-overlay: rgba(0,0,0,0.4);
+  --input-border: #D0D0E0;
+  --input-border-focus: #6B5CE7;
+  --input-focus-shadow: 0 0 0 3px rgba(107, 92, 231, 0.15);
+  --text-primary: #1A1A2E;
+  --text-secondary: #4A4A68;
+  --text-muted: #8A8AA3;
+  --bg-card-hover: #F5F5FF;
+  --border-subtle: #E2E4E9;
+  --shadow: 0 20px 60px rgba(0,0,0,0.15);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --radius: 10px;
+  --radius-sm: 8px;
+  --radius-lg: 12px;
+  --transition: all 0.18s ease;
+  --menu-bg: #FFFFFF;
+  --menu-border: #E8E8EE;
+  --menu-hover: #F4F5F7;
+}
+
+html.dark {
+  --bg-page: #111827;
+  --bg-header: #1A2236;
+  --header-border: #2E3A50;
+  --bg-column: #1E2740;
+  --column-border: #2E3A50;
+  --bg-card: #252E42;
+  --card-border: #2E3A50;
+  --card-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  --badge-bg: #3B3270;
+  --badge-text: #A78BFA;
+  --card-title: #E8E8F0;
+  --details-label: #8888A8;
+  --card-desc: #B0B0C8;
+  --col-title: #E8E8F0;
+  --tasks-count: #7A7A98;
+  --accent: #A78BFA;
+  --accent-hover: #9070e8;
+  --accent-light: rgba(167, 139, 250, 0.15);
+  --btn-primary-bg: #6B5CE7;
+  --btn-primary-text: #FFFFFF;
+  --btn-cancel-text: #B0B0C8;
+  --add-lane-bg: #2A2458;
+  --add-lane-text: #A78BFA;
+  --add-lane-border: #3A3070;
+  --add-task-text: #7A7A98;
+  --brand-text: #A78BFA;
+  --dropdown-bg: #2A3348;
+  --dropdown-border: #3A4560;
+  --dropdown-text: #E8E8F0;
+  --icon-color: #B0B0C8;
+  --danger-text: #E74C6F;
+  --modal-bg: #1E2740;
+  --modal-overlay: rgba(0,0,0,0.6);
+  --input-border: #3A4560;
+  --input-border-focus: #A78BFA;
+  --input-focus-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2);
+  --text-primary: #E8E8F0;
+  --text-secondary: #B0B0C8;
+  --text-muted: #7A7A98;
+  --bg-card-hover: #2D3850;
+  --border-subtle: #2E3A50;
+  --menu-bg: #1E2740;
+  --menu-border: #2E3A50;
+  --menu-hover: #252E42;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  height: 100%;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+input, textarea {
+  font-family: inherit;
+  outline: none;
+  color: var(--text-primary);
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+@keyframes appSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes appSlideInRight {
+  from { transform: translateX(20px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes taskModalFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes taskModalSlideUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes boardDropdownIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
