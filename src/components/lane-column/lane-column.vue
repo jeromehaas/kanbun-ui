@@ -6,6 +6,20 @@ import { ref, watch } from 'vue'
 import draggable from 'vuedraggable'
 import TaskCard from '@/components/task-card/task-card.vue'
 
+// FUNCTION: SORT TASKS BY POSITION
+const sortTasksByPosition = (tasks = []) => {
+
+  // RETURN
+  return [...tasks].sort((a, b) => {
+
+    // GET DIFF POSITION
+    const positionDiff = (a.position ?? 0) - (b.position ?? 0)
+
+    // RETURN
+    return positionDiff !== 0 ? positionDiff : (a.id ?? 0) - (b.id ?? 0)
+  })
+}
+
 // DEFINE PROPS
 const props = defineProps({
   lane: {
@@ -45,7 +59,7 @@ const vClickOutside = {
 }
 
 // SETUP STATE
-const localTasks = ref([...(props.lane.tasks || [])])
+const localTasks = ref(sortTasksByPosition(props.lane.tasks || []))
 const laneMenuOpen = ref(false)
 const editing = ref(false)
 const editName = ref('')
@@ -53,7 +67,7 @@ const editRef = ref(null)
 
 // WATCH: LANE TASKS
 watch(() => props.lane.tasks, (newTasks) => {
-  localTasks.value = [...(newTasks || [])]
+  localTasks.value = sortTasksByPosition(newTasks || [])
 }, { deep: true })
 
 // HANDLER: HANDLE DELETE LANE
@@ -107,9 +121,19 @@ const onDragChange = (evt) => {
 
   // EMIT TASK DROPPED
   if (evt.added) {
-    emit('taskDropped', evt.added.element, props.lane, evt.added.newIndex)
+    emit('taskDropped', {
+      task: evt.added.element,
+      fromLaneId: evt.added.element.lane_id,
+      toLane: props.lane,
+      newIndex: evt.added.newIndex,
+    })
   } else if (evt.moved) {
-    emit('taskDropped', evt.moved.element, props.lane, evt.moved.newIndex)
+    emit('taskDropped', {
+      task: evt.moved.element,
+      fromLaneId: props.lane.id,
+      toLane: props.lane,
+      newIndex: evt.moved.newIndex,
+    })
   }
 }
 </script>
