@@ -1,29 +1,29 @@
 // IMPORTS
-import axios from 'axios';
+import http from '@/api/http.js';
 
 // FUNCTION: BASE URL
 const base = (boardId) => (
-	`/api/boards/${ boardId }/lanes`
+	`/boards/${ boardId }/lanes`
 );
 
 // FUNCTION: GET LANES
 const getLanes = (boardId) => {
-	return axios.get(base(boardId));
+	return http.get(base(boardId));
 };
 
 // FUNCTION: GET LANE
 const createLane = (boardId, name) => {
-	return axios.post(base(boardId), { name });
+	return http.post(base(boardId), { name });
 };
 
 // FUNCTION: UPDATE LANE
 const updateLane = (boardId, laneId, data) => {
-	return axios.patch(`${ base(boardId) }/${ laneId }`, data);
+	return http.patch(`${ base(boardId) }/${ laneId }`, data);
 };
 
 // FUNCTION: DELETE LANE
 const deleteLane = (boardId, laneId) => {
-	return axios.delete(`${ base(boardId) }/${ laneId }`);
+	return http.delete(`${ base(boardId) }/${ laneId }`);
 };
 
 // EXPORTS

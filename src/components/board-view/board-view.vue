@@ -232,34 +232,97 @@ const handleDeleteTask = async (task, lane) => {
   }
 }
 
+// FUNCTION: SYNC TASK METADATA IN LANE
+const syncLaneTaskMetadata = (lane) => {
+
+  // STOP, IF NO TASKS ARE AVAILABLE
+  if (!lane?.tasks) {
+    return;
+  }
+
+  // UPDATE TASK LANE IDS AND POSITIONS
+  lane.tasks.forEach((laneTask, index) => {
+    laneTask.lane_id = lane.id;
+    laneTask.position = index;
+  });
+};
+
+// FUNCTION: MOVE TASK LOCALLY
+const moveTaskLocally = (task, fromLaneId, toLaneId, newIndex) => {
+
+  // GET SOURCE AND TARGET LANES
+  const sourceLane = props.board.lanes?.find((lane) => lane.id === fromLaneId);
+  const targetLane = props.board.lanes?.find((lane) => lane.id === toLaneId);
+
+  // STOP, IF LANES ARE NOT AVAILABLE
+  if (!sourceLane || !targetLane) {
+    return;
+  }
+
+  // ENSURE TASK ARRAYS EXIST
+  sourceLane.tasks ||= [];
+  targetLane.tasks ||= [];
+
+  // HANDLE MOVE WITHIN THE SAME LANE
+  if (fromLaneId === toLaneId) {
+    const sourceIndex = sourceLane.tasks.findIndex((laneTask) => laneTask.id === task.id);
+
+    if (sourceIndex === -1) {
+      return;
+    }
+
+    const [movedTask] = sourceLane.tasks.splice(sourceIndex, 1);
+    const boundedIndex = Math.max(0, Math.min(newIndex, sourceLane.tasks.length));
+
+    sourceLane.tasks.splice(boundedIndex, 0, movedTask);
+    syncLaneTaskMetadata(sourceLane);
+    return;
+  }
+
+  // HANDLE MOVE ACROSS LANES
+  const sourceIndex = sourceLane.tasks.findIndex((laneTask) => laneTask.id === task.id);
+  const targetIndex = targetLane.tasks.findIndex((laneTask) => laneTask.id === task.id);
+  const boundedIndex = Math.max(0, Math.min(newIndex, targetLane.tasks.length));
+  const [movedTask] = sourceIndex === -1 ? [task] : sourceLane.tasks.splice(sourceIndex, 1);
+
+  if (targetIndex !== -1) {
+    targetLane.tasks.splice(targetIndex, 1);
+  }
+
+  targetLane.tasks.splice(boundedIndex, 0, movedTask);
+  syncLaneTaskMetadata(sourceLane);
+  syncLaneTaskMetadata(targetLane);
+};
+
 // HANDLER: HANDLE TASK DROPPED
-const handleTaskDropped = async (task, newLane, newIndex) => {
+const handleTaskDropped = async ({ task, fromLaneId, toLane, newIndex }) => {
 
   // GET LANE ID
-  const originalLaneId = task.lane_id
+  const originalLaneId = fromLaneId ?? task.lane_id ?? toLane.id;
 
   // STOP, IF NO LANE ID
   if (!originalLaneId) {
-    return
+    return;
   }
+
+  // UPDATE TASK ORDER LOCALLY
+  moveTaskLocally(task, originalLaneId, toLane.id, newIndex);
 
   // TRY-CATCH BLOCK
   try {
 
     // UPDATE TASK
-    if (originalLaneId === newLane.id) {
-      if (task.position !== newIndex) {
-        await updateTask(props.board.id, newLane.id, task.id, { position: newIndex })
-      }
+    if (originalLaneId === toLane.id) {
+      await updateTask(props.board.id, toLane.id, task.id, { position: newIndex });
     } else {
       await updateTask(props.board.id, originalLaneId, task.id, {
-        lane_id: newLane.id,
+        lane_id: toLane.id,
         position: newIndex,
-      })
+      });
     }
 
     // EMIT REFRESH
-    emit('refresh')
+    emit('refresh');
 
   // HANDLE ERRORS
   } catch (e) {
@@ -268,7 +331,7 @@ const handleTaskDropped = async (task, newLane, newIndex) => {
     console.error('Failed to move task', e)
 
     // EMIT REFRESH
-    emit('refresh')
+    emit('refresh');
   }
 }
 </script>

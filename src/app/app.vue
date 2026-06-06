@@ -2,10 +2,11 @@
 
 // IMPORTS
 import './app.scss';
-import { nextTick, onMounted, ref } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import BoardView from '@/components/board-view/board-view.vue';
 import BoardDropdown from '@/components/board-dropdown/board-dropdown.vue';
 import { createBoard as apiCreateBoard, deleteBoard as apiDeleteBoard, getBoard, getBoards, updateBoard as apiUpdateBoard } from '@/api/boards.js';
+import { createBoardSocketManager } from '@/realtime/board-socket.js';
 
 // SETUP STATE
 const boards = ref([]);
@@ -21,6 +22,7 @@ const renameBoardRef = ref(null);
 const createBoardOpen = ref(false);
 const createBoardName = ref('');
 const createBoardRef = ref(null);
+let boardLoadRequestId = 0;
 
 // DIRECTIVE: CLICK OUTSIDE
 const vClickOutside = {
@@ -77,6 +79,23 @@ const loadBoards = async () => {
   }
 };
 
+// SETUP BOARD SOCKET MANAGER
+const { closeBoardSocket, connectBoardSocket } = createBoardSocketManager({
+  getActiveBoardId: () => activeBoardId.value,
+  onBoardDeleted: async (message) => {
+    showToast(message.payload?.message || 'The board was deleted', 'error');
+    activeBoardId.value = null;
+    activeBoard.value = null;
+    await loadBoards();
+  },
+  onTaskMessage: (message) => {
+    showToast(message.payload.message);
+  },
+  onBoardChanged: async (message) => {
+    await loadBoard(message.board_id);
+  },
+});
+
 // HANDLER: LOAD BOARD
 const loadBoard = async (id) => {
 
@@ -84,6 +103,9 @@ const loadBoard = async (id) => {
   if (!id) {
     return;
   }
+
+  // TRACK LATEST REQUEST
+  const requestId = ++boardLoadRequestId;
 
   // UPDATE LOADING STATE
   if (!activeBoard.value) {
@@ -95,6 +117,12 @@ const loadBoard = async (id) => {
 
     // GET BOARD
     const res = await getBoard(id);
+
+    // STOP, IF REQUEST IS STALE
+    if (requestId !== boardLoadRequestId || activeBoardId.value !== id) {
+      return;
+    }
+
     const board = res.data;
 
     // UPDATE LANE IDS
@@ -118,13 +146,17 @@ const loadBoard = async (id) => {
   } catch (e) {
 
     // SHOW TOAST
-    showToast('Failed to load board', 'error');
+    if (requestId === boardLoadRequestId) {
+      showToast('Failed to load board', 'error');
+    }
 
   // FINALLY
   } finally {
 
     // UPDATE LOADING STATE
-    loading.value = false;
+    if (requestId === boardLoadRequestId) {
+      loading.value = false;
+    }
   }
 };
 
@@ -137,6 +169,18 @@ const selectBoard = async (id) => {
   // LOAD BOARD
   await loadBoard(id);
 };
+
+// WATCH: ACTIVE BOARD SOCKET
+watch(activeBoardId, (boardId) => {
+
+  // CLOSE PREVIOUS SOCKET
+  closeBoardSocket();
+
+  // CONNECT NEW SOCKET
+  if (boardId) {
+    connectBoardSocket(boardId);
+  }
+});
 
 // HANDLER: START RENAME BOARD
 const startRenameBoard = () => {
@@ -282,6 +326,13 @@ onMounted(async () => {
   if (boards.value.length) {
     selectBoard(boards.value[0].id);
   }
+});
+
+// HOOK: ON BEFORE UNMOUNT
+onBeforeUnmount(() => {
+
+  // CLOSE SOCKET
+  closeBoardSocket();
 });
 </script>
 

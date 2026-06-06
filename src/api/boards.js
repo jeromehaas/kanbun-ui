@@ -1,32 +1,32 @@
 // IMPORTS
-import axios from 'axios';
+import http from '@/api/http.js';
 
 // SETUP BASE URL
-const BASE = '/api/boards';
+const BASE = '/boards';
 
 // FUNCTION: GET BOARDS
 const getBoards = () => {
-	return axios.get(BASE);
+	return http.get(BASE);
 };
 
 // FUNCTION: GET BOARD
 const getBoard = (id) => {
-	return axios.get(`${ BASE }/${ id }`);
+	return http.get(`${ BASE }/${ id }`);
 };
 
 // FUNCTION: CREATE BOARD
 const createBoard = (name) => {
-	return axios.post(BASE, { name });
+	return http.post(BASE, { name });
 };
 
 // FUNCTION: UPDATE BOARD
 const updateBoard = (id, name) => {
-	return axios.patch(`${ BASE }/${ id }`, { name });
+	return http.patch(`${ BASE }/${ id }`, { name });
 };
 
 // FUNCTION: DELETE BOARD
 const deleteBoard = (id) => {
-	return axios.delete(`${ BASE }/${ id }`);
+	return http.delete(`${ BASE }/${ id }`);
 };
 
 // EXPORTS
