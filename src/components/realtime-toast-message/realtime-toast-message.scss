@@ -1,0 +1,23 @@
+@reference "tailwindcss";
+
+.realtime-toast-message {
+  @apply block leading-8 whitespace-pre-wrap break-words;
+}
+
+.realtime-toast-message__actor,
+.realtime-toast-message__entity {
+  @apply inline rounded-[0.45rem] px-[0.32rem] py-[0.02rem] font-semibold [box-decoration-break:clone] [-webkit-box-decoration-break:clone];
+}
+
+.realtime-toast-message__actor {
+  @apply border border-[rgba(107,92,231,0.22)] bg-[rgba(107,92,231,0.12)] text-[var(--accent)];
+}
+
+.realtime-toast-message__entity {
+  @apply border border-[var(--menu-border)] bg-[rgba(17,24,39,0.04)] text-[var(--text-primary)];
+}
+
+[data-sonner-toast][data-type='error'] .realtime-toast-message__actor,
+[data-sonner-toast][data-type='error'] .realtime-toast-message__entity {
+  @apply border-[rgba(190,24,93,0.16)] bg-[rgba(255,255,255,0.55)] text-[#9f1239];
+}

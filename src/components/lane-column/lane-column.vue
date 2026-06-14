@@ -1,10 +1,10 @@
 <script setup>
 
 // IMPORTS
-import './lane-column.scss'
-import { ref, watch } from 'vue'
-import draggable from 'vuedraggable'
-import TaskCard from '@/components/task-card/task-card.vue'
+import './lane-column.scss';
+import { ref, watch } from 'vue';
+import draggable from 'vuedraggable';
+import TaskCard from '@/components/task-card/task-card.vue';
 
 // FUNCTION: SORT TASKS BY POSITION
 const sortTasksByPosition = (tasks = []) => {
@@ -13,12 +13,12 @@ const sortTasksByPosition = (tasks = []) => {
   return [...tasks].sort((a, b) => {
 
     // GET DIFF POSITION
-    const positionDiff = (a.position ?? 0) - (b.position ?? 0)
+    const positionDiff = (a.position ?? 0) - (b.position ?? 0);
 
     // RETURN
-    return positionDiff !== 0 ? positionDiff : (a.id ?? 0) - (b.id ?? 0)
-  })
-}
+    return positionDiff !== 0 ? positionDiff : (a.id ?? 0) - (b.id ?? 0);
+  });
+};
 
 // DEFINE PROPS
 const props = defineProps({
@@ -38,104 +38,118 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-})
+});
 
 // DEFINE EMITS
-const emit = defineEmits(['move', 'delete', 'editTask', 'deleteTask', 'addTask', 'taskDropped', 'renameLane', 'openAddTask'])
+const emit = defineEmits(['move', 'delete', 'editTask', 'deleteTask', 'addTask', 'taskDropped', 'renameLane', 'openAddTask']);
 
 // DIRECTIVE: CLICK OUTSIDE
 const vClickOutside = {
 
-  // MOUNTED
+  // HOOK: MOUNTED
   mounted: (el, binding) => {
-    el._clickOutside = (e) => { if (!el.contains(e.target)) binding.value(e) }
-    document.addEventListener('click', el._clickOutside, true)
+
+    // FUNCTION: CLICK OUTSIDE
+    el._clickOutside = (event) => {
+
+      // CHECK FOR TARAGET
+      if (!el.contains(event.target)) {
+
+        // RETURN
+        return binding.value(event);
+      }
+    };
+
+    // APPEND LISTENER
+    document.addEventListener('click', el._clickOutside, true);
   },
 
-  // UNMOUNTED
+  // HOOK: UNMOUNTED
   unmounted: (el) => {
-    document.removeEventListener('click', el._clickOutside, true)
+
+    // REMOVE LISTENER FOR OUTSIDE CLICK
+    document.removeEventListener('click', el._clickOutside, true);
   },
-}
+};
 
 // SETUP STATE
-const localTasks = ref(sortTasksByPosition(props.lane.tasks || []))
-const laneMenuOpen = ref(false)
-const editing = ref(false)
-const editName = ref('')
-const editRef = ref(null)
+const localTasks = ref(sortTasksByPosition(props.lane.tasks || []));
+const laneMenuOpen = ref(false);
+const editing = ref(false);
+const editName = ref('');
+const editRef = ref(null);
 
 // WATCH: LANE TASKS
 watch(() => props.lane.tasks, (newTasks) => {
-  localTasks.value = sortTasksByPosition(newTasks || [])
-}, { deep: true })
+  localTasks.value = sortTasksByPosition(newTasks || []);
+}, { deep: true });
 
 // HANDLER: HANDLE DELETE LANE
 const handleDeleteLane = () => {
 
   // UPDATE LANE MENU
-  laneMenuOpen.value = false
+  laneMenuOpen.value = false;
 
   // EMIT DELETE
-  emit('delete', props.lane)
-}
+  emit('delete', props.lane);
+};
 
 // HANDLER: OPEN RENAME
 const openRename = () => {
 
   // UPDATE LANE
-  laneMenuOpen.value = false
-  editName.value = props.lane.name
-  editing.value = true
+  laneMenuOpen.value = false;
+  editName.value = props.lane.name;
+  editing.value = true;
 
   // REMOVE FOCUS
   setTimeout(() => {
     editRef.value?.focus();
-  }, 0)
-}
+  }, 0);
+};
 
 // HANDLER: SAVE EDIT
 const saveEdit = () => {
 
   // GET NAME
-  const name = editName.value.trim()
+  const name = editName.value.trim();
 
   // UPDATE VALUE
-  editing.value = false
+  editing.value = false;
 
   // EMIT RENAME
   if (name && name !== props.lane.name) {
-    emit('renameLane', props.lane, name)
+    emit('renameLane', props.lane, name);
   }
-}
+};
 
 // HANDLER: CANCEL EDIT
 const cancelEdit = () => {
 
   // UPDATE STATE
-  editing.value = false
-}
+  editing.value = false;
+};
 
 // HANDLER: ON DRAG CHANGE
-const onDragChange = (evt) => {
+const onDragChange = (event) => {
 
   // EMIT TASK DROPPED
-  if (evt.added) {
+  if (event.added) {
+      emit('taskDropped', {
+        task: event.added.element,
+        fromLaneId: event.added.element.lane_id,
+        toLane: props.lane,
+        newIndex: event.added.newIndex,
+      });
+  } else if (event.moved) {
     emit('taskDropped', {
-      task: evt.added.element,
-      fromLaneId: evt.added.element.lane_id,
-      toLane: props.lane,
-      newIndex: evt.added.newIndex,
-    })
-  } else if (evt.moved) {
-    emit('taskDropped', {
-      task: evt.moved.element,
+      task: event.moved.element,
       fromLaneId: props.lane.id,
       toLane: props.lane,
-      newIndex: evt.moved.newIndex,
-    })
+      newIndex: event.moved.newIndex,
+    });
   }
-}
+};
 </script>
 
 <template>

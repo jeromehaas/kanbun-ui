@@ -5,9 +5,15 @@ import { fileURLToPath, URL } from 'node:url'
 
 // CONFIG
 const config = defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
-  const serverBaseUrl = env.VITE_SERVER_BASE_URL || 'http://209.38.109.201:5001';
 
+  // GET ENVIRONMENT
+  const env = loadEnv(mode, process.cwd(), '');
+
+  // GER SERVER BASE URL
+  const serverBaseUrl = env.VITE_SERVER_BASE_URL || 'http://209.38.109.201:5001';
+  const shouldProxyWebSockets = !env.VITE_SERVER_BASE_URL;
+
+  // RETURN
   return {
     plugins: [
       vue(),
@@ -26,11 +32,13 @@ const config = defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ''),
         },
-        '/ws': {
-          target: serverBaseUrl,
-          changeOrigin: true,
-          ws: true,
-        },
+        ...(shouldProxyWebSockets ? {
+          '/ws': {
+            target: serverBaseUrl,
+            changeOrigin: true,
+            ws: true,
+          },
+        } : {}),
       },
     },
   };

@@ -3,14 +3,16 @@ const createClientSessionId = () => {
 
   // USE BROWSER UUID IF AVAILABLE
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+
+    // RETURN
     return crypto.randomUUID();
   }
 
-  // FALLBACK SESSION ID
+  // RETURN
   return `kanbun-${ Date.now() }-${ Math.random().toString(16).slice(2) }`;
 };
 
-// SETUP STATE
+// DEFINE CLIENT SESSION ID
 let clientSessionId = null;
 
 // FUNCTION: GET CLIENT SESSION ID
@@ -26,7 +28,7 @@ const getClientSessionId = () => {
     clientSessionId = createClientSessionId();
   }
 
-  // RETURN SESSION ID
+  // RETURN
   return clientSessionId;
 };
 

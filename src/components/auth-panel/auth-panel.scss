@@ -1,0 +1,69 @@
+@reference "tailwindcss";
+
+.auth-panel {
+  @apply flex flex-1 items-center justify-center px-4 py-10 sm:px-6;
+
+  .auth-panel__card {
+    @apply w-full max-w-[460px] rounded-[28px] border border-[var(--menu-border)] bg-[var(--modal-bg)] p-6 shadow-[0_24px_80px_rgba(15,23,42,0.16)] sm:p-8;
+  }
+
+  .auth-panel__copy {
+    @apply flex flex-col gap-3;
+  }
+
+  .auth-panel__eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.22em] text-[var(--accent)];
+  }
+
+  .auth-panel__title {
+    @apply text-3xl font-bold leading-tight text-[var(--text-primary)];
+  }
+
+  .auth-panel__subtitle {
+    @apply text-sm leading-6 text-[var(--text-muted)];
+  }
+
+  .auth-panel__tabs {
+    @apply mt-6 grid grid-cols-2 gap-2 rounded-2xl bg-[var(--accent-light)] p-1;
+  }
+
+  .auth-panel__tab {
+    @apply rounded-[14px] px-4 py-2.5 text-sm font-medium text-[var(--text-muted)] [transition:var(--transition)];
+  }
+
+  .auth-panel__tab--active {
+    @apply bg-[var(--bg-header)] text-[var(--text-primary)] shadow-[0_10px_24px_rgba(15,23,42,0.08)];
+  }
+
+  .auth-panel__form {
+    @apply mt-6 flex flex-col gap-4;
+  }
+
+  .auth-panel__field {
+    @apply flex flex-col gap-2;
+  }
+
+  .auth-panel__label {
+    @apply text-sm font-medium text-[var(--text-primary)];
+  }
+
+  .auth-panel__input {
+    @apply w-full rounded-2xl border border-[var(--input-border)] bg-transparent px-4 py-3 text-sm text-[var(--text-primary)] outline-none [transition:var(--transition)] placeholder:text-[var(--text-muted)] focus:border-[var(--input-border-focus)] focus:shadow-[var(--input-focus-shadow)];
+  }
+
+  .auth-panel__input--code {
+    @apply text-center text-lg tracking-[0.45em];
+  }
+
+  .auth-panel__submit {
+    @apply inline-flex w-full items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold text-[var(--btn-primary-text)] bg-[var(--btn-primary-bg)] [transition:var(--transition)] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .auth-panel__actions {
+    @apply flex flex-col-reverse gap-3 sm:flex-row sm:items-center;
+  }
+
+  .auth-panel__back {
+    @apply inline-flex items-center justify-center rounded-2xl px-4 py-3 text-sm font-medium text-[var(--btn-cancel-text)] [transition:var(--transition)] hover:opacity-75 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+}
