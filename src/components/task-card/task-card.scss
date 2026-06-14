@@ -1,11 +1,7 @@
 @reference "tailwindcss";
 
 .task-card {
-  @apply flex flex-col cursor-pointer rounded-xl p-4 bg-[var(--bg-card)] border border-[var(--card-border)] shadow-[var(--card-shadow)] [transition:var(--transition)];
-
-  &:hover {
-    @apply -translate-y-px bg-[var(--bg-card-hover)] shadow-[0_4px_12px_rgba(0,0,0,0.08)];
-  }
+  @apply flex flex-col cursor-pointer rounded-xl border border-[var(--card-border)] bg-[var(--bg-card)] p-4 shadow-[var(--card-shadow)] [transition:var(--transition)] hover:-translate-y-px hover:bg-[var(--bg-card-hover)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)];
 
   .task-card__badge {
     @apply self-start text-xs font-semibold rounded-md px-2 py-0.5 mb-2.5 bg-[var(--badge-bg)] text-[var(--badge-text)];

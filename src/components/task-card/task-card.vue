@@ -1,7 +1,7 @@
 <script setup>
 
 // IMPORTS
-import './task-card.scss'
+import './task-card.scss';
 
 // DEFINE PROPS
 const props = defineProps({
@@ -9,15 +9,17 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-})
+});
 
 // DEFINE EMITS
-const emit = defineEmits(['edit', 'delete'])
+const emit = defineEmits(['edit', 'delete']);
 
 // HANDLER: HANDLE CLICK
 const handleClick = () => {
-  emit('edit', props.task)
-}
+
+  // EMIT EDIT
+  emit('edit', props.task);
+};
 </script>
 
 <template>

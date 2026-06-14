@@ -1,4 +1,5 @@
 // IMPORTS
+import { getStoredAuthToken } from '@/auth/session.js';
 import { getClientSessionId } from '@/realtime/client-session.js';
 
 // SETUP SERVER BASE URL
@@ -7,26 +8,44 @@ const serverBaseUrl = (import.meta.env.VITE_SERVER_BASE_URL || '').replace(/\/$/
 // FUNCTION: GET BOARD SOCKET URL
 const getBoardSocketUrl = (boardId) => {
 
-  // USE PROXY DURING LOCAL DEVELOPMENT
-  if (import.meta.env.DEV || !serverBaseUrl) {
+  // GET AUTH TOKEN
+  const authToken = getStoredAuthToken();
 
-    // GET SOCKET PROTOCOL
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  // STOP, IF NO AUTH TOKEN IS AVAILABLE
+  if (!authToken) {
+    return null;
+  }
 
-    // RETURN PROXIED SOCKET URL
-    return `${ protocol }//${ window.location.host }/ws/boards/${ boardId }`;
+  // USE THE DEV PROXY ONLY WHEN NO EXPLICIT SERVER URL EXISTS
+  if (!serverBaseUrl) {
+
+    // BUILD PROXIED SOCKET URL
+    const socketUrl = new URL(
+      `/ws/boards/${ boardId }`,
+      `${ window.location.protocol === 'https:' ? 'wss:' : 'ws:' }//${ window.location.host }`
+    );
+
+    // SET TOKEN TO SEARCH PARAMS
+    socketUrl.searchParams.set('token', authToken);
+
+    // RETURN
+    return socketUrl.toString();
   }
 
   // CREATE SOCKET URL FROM SERVER BASE URL
   const socketUrl = new URL(serverBaseUrl);
   socketUrl.protocol = socketUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+  socketUrl.pathname = `/ws/boards/${ boardId }`;
+  socketUrl.searchParams.set('token', authToken);
 
-  // RETURN SOCKET URL
-  return `${ socketUrl.toString().replace(/\/$/, '') }/ws/boards/${ boardId }`;
+  // RETURN
+  return socketUrl.toString();
 };
 
 // FUNCTION: CREATE BOARD SOCKET MANAGER
-const createBoardSocketManager = ({ getActiveBoardId, onBoardDeleted, onTaskMessage, onBoardChanged }) => {
+const createBoardSocketManager = ({ getActiveBoardId, onBoardDeleted, onRealtimeMessage, onBoardChanged }) => {
+
+  // GET BOARD SOCKET AND RECONNECT TIMER
   let boardSocket = null;
   let boardSocketReconnectTimer = null;
 
@@ -76,7 +95,10 @@ const createBoardSocketManager = ({ getActiveBoardId, onBoardDeleted, onTaskMess
     boardSocketReconnectTimer = window.setTimeout(() => {
       boardSocketReconnectTimer = null;
 
+      // CHECK FOR BOARD ID
       if (getActiveBoardId() === boardId && !boardSocket) {
+
+        // CONNECT TO BOARD SOCKET
         connectBoardSocket(boardId);
       }
     }, 1500);
@@ -117,9 +139,9 @@ const createBoardSocketManager = ({ getActiveBoardId, onBoardDeleted, onTaskMess
       return;
     }
 
-    // SHOW TASK MESSAGE IF AVAILABLE
-    if (message.type.startsWith('task.') && message.payload?.message) {
-      onTaskMessage?.(message);
+    // SHOW REALTIME MESSAGE IF AVAILABLE
+    if (message.payload?.message) {
+      onRealtimeMessage?.(message);
     }
 
     // REFRESH CURRENT BOARD
@@ -136,29 +158,47 @@ const createBoardSocketManager = ({ getActiveBoardId, onBoardDeleted, onTaskMess
       return;
     }
 
+    // BUILD SOCKET URL WITH AUTH TOKEN
+    const socketUrl = getBoardSocketUrl(boardId);
+
+    // STOP, IF NO SOCKET URL IS AVAILABLE
+    if (!socketUrl) {
+      return;
+    }
+
     // RESET EXISTING SOCKET
     closeBoardSocket();
 
     // CREATE SOCKET
-    const socket = new WebSocket(getBoardSocketUrl(boardId));
+    const socket = new WebSocket(socketUrl);
     boardSocket = socket;
 
     // SEND HELLO ON OPEN
     socket.onopen = () => {
+
+      // SEND HELLO
       socket.send(JSON.stringify({
         type: 'hello',
         client_id: getClientSessionId(),
       }));
     };
 
-    // HANDLE SOCKET EVENTS
+    // HANDLE SOCKET ON MESSAGE
     socket.onmessage = handleBoardSocketMessage;
+
+    // HANDLE SOCKET ON ERROR
     socket.onerror = () => {
+
+      // CLOSE SOCKET
       if (socket === boardSocket) {
         socket.close();
       }
     };
+
+    // HANDLE SOCKET ON CLOSE
     socket.onclose = () => {
+
+      // RESET SOCKET BOARD
       if (socket === boardSocket) {
         boardSocket = null;
         scheduleBoardSocketReconnect(boardId);

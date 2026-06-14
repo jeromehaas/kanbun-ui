@@ -1,8 +1,8 @@
 <script setup>
 
 // IMPORTS
-import './board-dropdown.scss'
-import { ref, computed, nextTick } from 'vue'
+import './board-dropdown.scss';
+import { ref, computed, nextTick } from 'vue';
 
 // DEFINE PROPS
 const props = defineProps({
@@ -14,66 +14,94 @@ const props = defineProps({
     type: Number,
     default: null,
   },
-})
+});
 
 // DEFINE EMITS
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue']);
 
 // SETUP STATE
-const isOpen = ref(false)
-const listStyle = ref({})
+const isOpen = ref(false);
+const listStyle = ref({});
 
 // COMPUTED: SELECTED BOARD
-const selectedBoard = computed(() => props.boards.find((b) => b.id === props.modelValue) || null)
+const selectedBoard = computed(() => props.boards.find((b) => b.id === props.modelValue) || null);
 
 // DIRECTIVE: CLICK OUTSIDE
 const vClickOutside = {
 
   // MOUNTED
   mounted: (el, binding) => {
-    el._clickOutside = (e) => { if (!el.contains(e.target)) binding.value(e) }
-    document.addEventListener('click', el._clickOutside, true)
+
+    // APPEND  EVENT LISTENER
+    el._clickOutside = (event) => {
+
+      // CHECK FOR TARGET
+      if (!el.contains(e.target)) {
+        binding.value(event);
+      }
+    };
+
+    // APPEND CLICK LISTENER
+    document.addEventListener('click', el._clickOutside, true);
   },
 
   // UNMOUNTED
   unmounted: (el) => {
-    document.removeEventListener('click', el._clickOutside, true)
+
+    // REMOVE CLICK LISTENER
+    document.removeEventListener('click', el._clickOutside, true);
   },
-}
+};
 
 // HANDLER: CLOSE
 const close = () => {
-  isOpen.value = false
-}
+
+  // UPDATE STATE
+  isOpen.value = false;
+};
 
 // HANDLER: TOGGLE
 const toggle = async () => {
-  isOpen.value = !isOpen.value
+
+  // UPDATE STATE
+  isOpen.value = !isOpen.value;
+
+  // IF DROPDOWN IS OPEN
   if (isOpen.value) {
-    await nextTick()
-    const trigger = document.querySelector('.board-dropdown__trigger')
+
+    // TICK
+    await nextTick();
+
+    // GET TRIGGER ELEMENT
+    const trigger = document.querySelector('.board-dropdown__trigger');
+
+    // IF TRIGGER ELEMENT IS AVAILABLE
     if (trigger) {
-      const rect = trigger.getBoundingClientRect()
+
+      // GET RECT
+      const rect = trigger.getBoundingClientRect();
+
+      // APPEND STYLES
       listStyle.value = {
         position: 'fixed',
         top: `${rect.bottom + 6}px`,
         left: `${rect.left}px`,
         minWidth: `${Math.max(rect.width, 200)}px`,
         zIndex: 9999,
-      }
+      };
     }
   }
-}
+};
 
 // HANDLER: SELECT
 const select = (id) => {
 
   // EMIT UPDATE
-  emit('update:modelValue', id)
+  emit('update:modelValue', id);
 
   // UPDATE STATE
-  isOpen.value = false
-}
+  isOpen.value = false;
+};
 </script>
 
 <template>

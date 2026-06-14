@@ -1,0 +1,21 @@
+@reference "tailwindcss";
+
+html, body {
+  @apply h-full bg-[var(--bg-page)] text-[var(--text-primary)] text-[14px] leading-6 [font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif] [-webkit-font-smoothing:antialiased];
+}
+
+#app {
+  @apply h-full;
+}
+
+button {
+  @apply cursor-pointer border-0 outline-none [font-family:inherit];
+}
+
+input, textarea {
+  @apply outline-none text-[var(--text-primary)] [font-family:inherit];
+}
+
+html.theme-switching *, html.theme-switching *::before, html.theme-switching *::after {
+  @apply transition-none;
+}

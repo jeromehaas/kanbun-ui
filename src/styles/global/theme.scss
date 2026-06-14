@@ -1,8 +1,4 @@
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+@reference "tailwindcss";
 
 :root {
   --bg-page: #F4F5F7;
@@ -104,58 +100,15 @@ html.dark {
   --menu-hover: #252E42;
 }
 
-html, body {
-  height: 100%;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: var(--bg-page);
-  color: var(--text-primary);
-  font-size: 14px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
+html.dark .realtime-toast-message__actor {
+  @apply border-[rgba(167,139,250,0.3)] bg-[rgba(167,139,250,0.16)] text-[#c4b5fd];
 }
 
-#app {
-  height: 100%;
+html.dark .realtime-toast-message__entity {
+  @apply border-[var(--menu-border)] bg-[rgba(255,255,255,0.05)] text-[var(--text-primary)];
 }
 
-button {
-  font-family: inherit;
-  cursor: pointer;
-  border: none;
-  outline: none;
-}
-
-input, textarea {
-  font-family: inherit;
-  outline: none;
-  color: var(--text-primary);
-}
-
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
-
-@keyframes appSpin {
-  to { transform: rotate(360deg); }
-}
-
-@keyframes appSlideInRight {
-  from { transform: translateX(20px); opacity: 0; }
-  to   { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes taskModalFadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@keyframes taskModalSlideUp {
-  from { transform: translateY(16px); opacity: 0; }
-  to   { transform: translateY(0); opacity: 1; }
-}
-
-@keyframes boardDropdownIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
+html.dark [data-sonner-toast][data-type='error'] .realtime-toast-message__actor,
+html.dark [data-sonner-toast][data-type='error'] .realtime-toast-message__entity {
+  @apply border-[rgba(248,113,113,0.3)] bg-[rgba(255,255,255,0.06)] text-[#fecdd3];
 }

@@ -1,8 +1,8 @@
 <script setup>
 
 // IMPORTS
-import './task-modal.scss'
-import { ref, reactive, onMounted } from 'vue'
+import './task-modal.scss';
+import { ref, reactive, onMounted } from 'vue';
 
 // DEFINE PROPS
 const props = defineProps({
@@ -14,39 +14,39 @@ const props = defineProps({
     type: String,
     default: 'edit',
   },
-})
+});
 
 // DEFINE EMITS
-const emit = defineEmits(['close', 'submit'])
+const emit = defineEmits(['close', 'submit']);
 
 // SETUP STATE
-const titleRef = ref(null)
+const titleRef = ref(null);
 const form = reactive({
   title: props.task?.title || '',
   description: props.task?.description || '',
-})
+});
 
 // LIFECYCLE
 onMounted(() => {
-  titleRef.value?.focus()
-})
+  titleRef.value?.focus();
+});
 
 // HANDLER: HANDLE SUBMIT
 const handleSubmit = () => {
 
   // STOP, IF NOT TITLE
-  if (!form.title.trim()) return
+  if (!form.title.trim()) return;
 
   // EMIT SUBMIT
-  emit('submit', { title: form.title.trim(), description: form.description.trim() })
-}
+  emit('submit', { title: form.title.trim(), description: form.description.trim() });
+};
 
 // HANDLER: HANDLE CLOSE
 const handleClose = () => {
 
   // EMIT CLOSE
-  emit('close')
-}
+  emit('close');
+};
 </script>
 
 <template>
