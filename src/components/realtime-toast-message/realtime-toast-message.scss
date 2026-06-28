@@ -1,7 +1,15 @@
 @reference "tailwindcss";
 
 .realtime-toast-message {
-  @apply block leading-8 whitespace-pre-wrap break-words;
+  @apply flex items-start gap-3 leading-8 whitespace-pre-wrap break-words;
+}
+
+.realtime-toast-message__content {
+  @apply min-w-0 flex-1;
+}
+
+.realtime-toast-message__close {
+  @apply mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[var(--menu-border)] bg-transparent text-base leading-none text-[var(--text-muted)] [transition:var(--transition)] hover:bg-[var(--menu-hover)] hover:text-[var(--text-primary)];
 }
 
 .realtime-toast-message__actor,

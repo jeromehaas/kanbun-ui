@@ -1,0 +1,29 @@
+@reference "tailwindcss";
+
+.confirmation-modal {
+  @apply fixed inset-0 z-[1100] flex items-center justify-center bg-[var(--modal-overlay)] px-4 [animation:taskModalFadeIn_0.15s_ease];
+
+  .confirmation-modal__dialog {
+    @apply flex w-full max-w-[460px] flex-col gap-4 rounded-2xl bg-[var(--modal-bg)] p-7 shadow-[0_20px_60px_rgba(0,0,0,0.15)] [animation:taskModalSlideUp_0.2s_ease];
+  }
+
+  .confirmation-modal__title {
+    @apply text-xl font-bold text-[var(--card-title)];
+  }
+
+  .confirmation-modal__message {
+    @apply text-sm leading-relaxed text-[var(--text-secondary)];
+  }
+
+  .confirmation-modal__actions {
+    @apply mt-2 flex items-center justify-end gap-2;
+  }
+
+  .confirmation-modal__btn-cancel {
+    @apply inline-flex items-center rounded-lg border-0 bg-transparent px-4 py-2.5 text-sm font-medium text-[var(--btn-cancel-text)] [font-family:inherit] [transition:var(--transition)] hover:opacity-75;
+  }
+
+  .confirmation-modal__btn-confirm {
+    @apply inline-flex items-center rounded-lg border-0 bg-[var(--danger-text)] px-5 py-2.5 text-sm font-semibold text-white [font-family:inherit] [transition:var(--transition)] hover:opacity-90;
+  }
+}

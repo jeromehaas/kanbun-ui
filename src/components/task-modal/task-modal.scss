@@ -32,7 +32,15 @@
   }
 
   .task-modal__actions {
-    @apply flex justify-end items-center mt-2;
+    @apply mt-2 flex items-center justify-between gap-3;
+  }
+
+  .task-modal__actions-right {
+    @apply flex items-center;
+  }
+
+  .task-modal__btn-delete {
+    @apply text-sm font-semibold px-4 py-2.5 rounded-lg border border-[rgba(231,76,111,0.2)] bg-[rgba(231,76,111,0.08)] text-[var(--danger-text)] cursor-pointer [font-family:inherit] [transition:var(--transition)] hover:bg-[rgba(231,76,111,0.14)];
   }
 
   .task-modal__btn-cancel {

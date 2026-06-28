@@ -17,7 +17,7 @@ const props = defineProps({
 });
 
 // DEFINE EMITS
-const emit = defineEmits(['close', 'submit']);
+const emit = defineEmits(['close', 'submit', 'delete']);
 
 // SETUP STATE
 const titleRef = ref(null);
@@ -47,6 +47,13 @@ const handleClose = () => {
   // EMIT CLOSE
   emit('close');
 };
+
+// HANDLER: HANDLE DELETE
+const handleDelete = () => {
+
+  // EMIT DELETE
+  emit('delete');
+};
 </script>
 
 <template>
@@ -64,10 +71,13 @@ const handleClose = () => {
             <textarea v-model="form.description" class="task-modal__input task-modal__input--textarea" placeholder="Description (optional)…" rows="4"></textarea>
           </div>
           <div class="task-modal__actions">
-            <button type="button" class="task-modal__btn-cancel" @click="handleClose">Cancel</button>
-            <button type="submit" class="task-modal__btn-save">
-              {{ mode === 'create' ? 'Create Task' : 'Save Changes' }}
-            </button>
+            <button v-if="mode === 'edit' && task" type="button" class="task-modal__btn-delete" @click="handleDelete">Delete Task</button>
+            <div class="task-modal__actions-right">
+              <button type="button" class="task-modal__btn-cancel" @click="handleClose">Cancel</button>
+              <button type="submit" class="task-modal__btn-save">
+                {{ mode === 'create' ? 'Create Task' : 'Save Changes' }}
+              </button>
+            </div>
           </div>
         </form>
       </div>
