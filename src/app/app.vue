@@ -7,6 +7,7 @@ import { Toaster, toast as sonnerToast } from 'vue-sonner';
 import AuthPanel from '@/components/auth-panel/auth-panel.vue';
 import BoardView from '@/components/board-view/board-view.vue';
 import BoardDropdown from '@/components/board-dropdown/board-dropdown.vue';
+import ConfirmationModal from '@/components/confirmation-modal/confirmation-modal.vue';
 import SearchModal from '@/components/search-modal/search-modal.vue';
 import RealtimeToastMessage from '@/components/realtime-toast-message/realtime-toast-message.vue';
 import { signIn as apiSignIn, signUp as apiSignUp, verifyTwoFactor as apiVerifyTwoFactor } from '@/api/auth.js';
@@ -15,50 +16,75 @@ import { searchTasks as apiSearchTasks } from '@/api/search.js';
 import { clearStoredAuthSession, getStoredAuthSession, setStoredAuthSession } from '@/auth/session.js';
 import { createBoardSocketManager } from '@/realtime/board-socket.js';
 
-// SETUP AUTH STATE
-const storedAuthSession = getStoredAuthSession();
-const authToken = ref(storedAuthSession.token || '');
-const currentUser = ref(storedAuthSession.user || null);
+// CONSTANTS
+const STORED_AUTH_SESSION = getStoredAuthSession();
+const REALTIME_TOAST_COMPONENT = markRaw(RealtimeToastMessage);
+const DEFAULT_TOAST_DURATION = 5000;
+const ERROR_TOAST_DURATION = 5000;
+const SEARCH_THROTTLE_DELAY = 280;
+const SEARCH_HIGHLIGHT_DURATION = 4000;
+
+// REFS: AUTHENTICATION SESSION
+const authToken = ref(STORED_AUTH_SESSION.token || '');
+const currentUser = ref(STORED_AUTH_SESSION.user || null);
 const authMode = ref('sign-in');
 const authLoading = ref(false);
-const signInEmail = ref(storedAuthSession.user?.email || '');
+const signInEmail = ref(STORED_AUTH_SESSION.user?.email || '');
 const pendingVerification = ref({
   email: '',
   verificationToken: '',
 });
 
-// SETUP APP STATE
+// REFS: ACTIVE BOARD DATA
 const boards = ref([]);
 const activeBoardId = ref(null);
 const activeBoard = ref(null);
 const loading = ref(false);
+
+// REFS: HEADER AND THEME UI
 const boardMenuOpen = ref(false);
 const isDark = ref(false);
+
+// REFS: BOARD RENAME MODAL
 const renameBoardOpen = ref(false);
 const renameBoardName = ref('');
 const renameBoardRef = ref(null);
+
+// REFS: BOARD CREATION MODAL
 const createBoardOpen = ref(false);
 const createBoardName = ref('');
 const createBoardRef = ref(null);
+
+// REFS: SHARED CONFIRMATION MODAL
+const confirmationModal = ref({
+  open: false,
+  title: '',
+  message: '',
+  confirmLabel: 'Delete',
+  action: null,
+});
+
+// REFS: GLOBAL SEARCH MODAL
 const searchModalOpen = ref(false);
 const searchQuery = ref('');
 const searchResults = ref([]);
 const searchLoading = ref(false);
 const searchError = ref('');
 const searchHasResolved = ref(false);
+
+// REFS: TASK HIGHLIGHT AFTER SEARCH NAVIGATION
 const highlightedTaskId = ref(null);
+
+// DERIVED STATE
 const isAuthenticated = computed(() => Boolean(authToken.value));
 const toastTheme = computed(() => (isDark.value ? 'dark' : 'light'));
-const realtimeToastComponent = markRaw(RealtimeToastMessage);
-const defaultToastDuration = 5000;
-const errorToastDuration = 6500;
+
+// REQUEST AND TIMER STATE
 let boardLoadRequestId = 0;
 let searchRequestId = 0;
 let searchThrottleTimer = null;
 let lastShiftKeyPressedAt = 0;
 let highlightedTaskTimer = null;
-const searchThrottleDelay = 280;
-const searchHighlightDuration = 4000;
 
 // FUNCTION: NORMALIZE TOAST MESSAGE
 const normalizeToastMessage = (message) => {
@@ -82,7 +108,7 @@ const vClickOutside = {
 
   // MOUNTED
   mounted: (el, binding) => {
-    el._clickOutside = (e) => { if (!el.contains(e.target)) binding.value(e); };
+    el._clickOutside = (event) => { if (!el.contains(event.target)) binding.value(event); };
     document.addEventListener('click', el._clickOutside, true);
   },
 
@@ -123,12 +149,12 @@ const showToast = (message, type = 'default') => {
 
   // SHOW TOAST ON ERROR
   if (type === 'error') {
-    sonnerToast.error(normalizedMessage, { duration: errorToastDuration });
+    sonnerToast.error(normalizedMessage, { duration: ERROR_TOAST_DURATION });
     return;
   }
 
   // SHOW TOAST
-  sonnerToast(normalizedMessage, { duration: defaultToastDuration });
+  sonnerToast(normalizedMessage, { duration: DEFAULT_TOAST_DURATION });
 };
 
 // FUNCTION: GET REALTIME ENTITY LABEL
@@ -178,19 +204,19 @@ const showRealtimeToast = (message, type = 'default') => {
       actor,
       entity,
     },
-    duration: type === 'error' ? errorToastDuration : defaultToastDuration,
+    duration: type === 'error' ? ERROR_TOAST_DURATION : DEFAULT_TOAST_DURATION,
   };
 
   // CHECK FOR TYPE ERROR
   if (type === 'error') {
 
     // SHOE TOAST AND BREAK
-    sonnerToast.error(realtimeToastComponent, toastPayload);
+    sonnerToast.error(REALTIME_TOAST_COMPONENT, toastPayload);
     return;
   }
 
   // SHOW TOAST
-  sonnerToast(realtimeToastComponent, toastPayload);
+  sonnerToast(REALTIME_TOAST_COMPONENT, toastPayload);
 };
 
 // FUNCTION: CHECK UNAUTHORIZED ERROR
@@ -217,6 +243,45 @@ const clearSearchThrottleTimer = () => {
 
   // RESET TIMER STATE
   searchThrottleTimer = null;
+};
+
+// HANDLER: CLOSE CONFIRMATION MODAL
+const closeConfirmationModal = () => {
+
+  // RESET MODAL STATE
+  confirmationModal.value = {
+    open: false,
+    title: '',
+    message: '',
+    confirmLabel: 'Delete',
+    action: null,
+  };
+};
+
+// HANDLER: OPEN CONFIRMATION MODAL
+const openConfirmationModal = ({ title, message, confirmLabel = 'Delete', action }) => {
+
+  // UPDATE MODAL STATE
+  confirmationModal.value = {
+    open: true,
+    title,
+    message,
+    confirmLabel,
+    action,
+  };
+};
+
+// HANDLER: CONFIRM PENDING ACTION
+const confirmPendingAction = async () => {
+
+  // GET CURRENT ACTION
+  const action = confirmationModal.value.action;
+
+  // CLOSE MODAL FIRST
+  closeConfirmationModal();
+
+  // RUN ACTION
+  await action?.();
 };
 
 // FUNCTION: CLEAR HIGHLIGHT TIMER
@@ -324,7 +389,7 @@ const focusTaskCard = async (taskId) => {
       }
 
       highlightedTaskTimer = null;
-    }, searchHighlightDuration);
+    }, SEARCH_HIGHLIGHT_DURATION);
   }
 };
 
@@ -408,7 +473,7 @@ const scheduleTaskSearch = () => {
   if (typeof window !== 'undefined') {
     searchThrottleTimer = window.setTimeout(() => {
       void flushTaskSearch();
-    }, searchThrottleDelay);
+    }, SEARCH_THROTTLE_DELAY);
   }
 };
 
@@ -543,13 +608,13 @@ const loadBoards = async () => {
     boards.value = res.data;
 
   // HANDLE ERRORS
-  } catch (e) {
+  } catch (error) {
 
     // FOR AUTH ERRORS
-    if (!isUnauthorizedError(e)) {
+    if (!isUnauthorizedError(error)) {
 
       // SHOWN TOAST
-      showToast(getApiErrorMessage(e, 'Failed to load boards'), 'error');
+      showToast(getApiErrorMessage(error, 'Failed to load boards'), 'error');
     }
   }
 };
@@ -603,9 +668,9 @@ const loadBoard = async (id) => {
     await loadBoards();
 
   // HANDLE ERRORS
-  } catch (e) {
-    if (requestId === boardLoadRequestId && !isUnauthorizedError(e)) {
-      showToast(getApiErrorMessage(e, 'Failed to load board'), 'error');
+  } catch (error) {
+    if (requestId === boardLoadRequestId && !isUnauthorizedError(error)) {
+      showToast(getApiErrorMessage(error, 'Failed to load board'), 'error');
     }
 
   // FINALLY
@@ -787,10 +852,10 @@ const submitSignIn = async ({ email, password }) => {
     showToast(`Verification code sent to ${ res.data.email }.`);
 
   // HANDLE ERRORS
-  } catch (e) {
+  } catch (error) {
 
     // SHOW ERROR TOAST
-    showToast(getApiErrorMessage(e, 'Failed to sign in'), 'error');
+    showToast(getApiErrorMessage(error, 'Failed to sign in'), 'error');
 
   // FINALLY
   } finally {
@@ -835,10 +900,10 @@ const submitTwoFactor = async ({ code }) => {
     showToast(`Welcome back, ${ res.data.user.username }.`);
 
   // HANDLE ERRORS
-  } catch (e) {
+  } catch (error) {
 
     // GET ERROR MESSAGE
-    const message = getApiErrorMessage(e, 'Failed to verify code');
+    const message = getApiErrorMessage(error, 'Failed to verify code');
 
     // DEFINE MESSAGE FOR EXPIRRED OR INVALID SESSION
     if (message === 'SIGN-IN SESSION EXPIRED OR INVALID') {
@@ -922,13 +987,13 @@ const submitRenameBoard = async () => {
     showToast(`Board renamed to "${ name }"`);
 
   // HANDLE ERRORS
-  } catch (e) {
+  } catch (error) {
 
     // CHECK FOR AUTH ERROR
-    if (!isUnauthorizedError(e)) {
+    if (!isUnauthorizedError(error)) {
 
       // SHOW TOAST
-      showToast(getApiErrorMessage(e, 'Failed to rename board'), 'error');
+      showToast(getApiErrorMessage(error, 'Failed to rename board'), 'error');
     }
   }
 };
@@ -973,13 +1038,13 @@ const submitCreateBoard = async () => {
     showToast(`Board "${ name }" created`);
 
   // CATCH ERRORS
-  } catch (e) {
+  } catch (error) {
 
     // CHECK FOR AUTH ERROR
-    if (!isUnauthorizedError(e)) {
+    if (!isUnauthorizedError(error)) {
 
       // SHOW TOAST
-      showToast(getApiErrorMessage(e, 'Failed to create board'), 'error');
+      showToast(getApiErrorMessage(error, 'Failed to create board'), 'error');
     }
   }
 };
@@ -996,37 +1061,25 @@ const handleDeleteBoard = async () => {
   // STOP, IF NO BOARD
   if (!board) return;
 
-  // GET CONFITMATION IF BOARD SHOULD BE DELETED
-  if (!confirm(`Delete board "${ board.name }"? This cannot be undone.`)) {
-    return;
-  }
-
-  // TRY-CATCH BLOCK
-  try {
-
-    // DELETE BOARD
-    await apiDeleteBoard(board.id);
-
-    // UPDATE BOARD STATE
-    activeBoardId.value = null;
-    activeBoard.value = null;
-
-    // LOAD BOARDS
-    await loadBoards();
-
-    // SHOW TOAST
-    showToast(`Board "${ board.name }" deleted`);
-
-  // HANDLE ERRORS
-  } catch (e) {
-
-    // CHECK FOR AUTH ERROR
-    if (!isUnauthorizedError(e)) {
-
-      // SHOW TOAST
-      showToast(getApiErrorMessage(e, 'Failed to delete board'), 'error');
-    }
-  }
+  // OPEN CONFIRMATION MODAL
+  openConfirmationModal({
+    title: 'Delete Board',
+    message: `Delete board "${ board.name }"? This cannot be undone.`,
+    confirmLabel: 'Delete Board',
+    action: async () => {
+      try {
+        await apiDeleteBoard(board.id);
+        activeBoardId.value = null;
+        activeBoard.value = null;
+        await loadBoards();
+        showToast(`Board "${ board.name }" deleted`);
+      } catch (error) {
+        if (!isUnauthorizedError(error)) {
+          showToast(getApiErrorMessage(error, 'Failed to delete board'), 'error');
+        }
+      }
+    },
+  });
 };
 
 // HOOK: ON MOUNTED
@@ -1139,6 +1192,7 @@ onBeforeUnmount(() => {
         </div>
       </template>
     </main>
+    <confirmation-modal :open="confirmationModal.open" :title="confirmationModal.title" :message="confirmationModal.message" :confirm-label="confirmationModal.confirmLabel" @close="closeConfirmationModal" @confirm="confirmPendingAction" />
     <search-modal :open="searchModalOpen" :query="searchQuery" :results="searchResults" :loading="searchLoading"  :error="searchError" :has-searched="searchHasResolved" @close="closeSearchModal"  @update:query="searchQuery = $event" @select="handleSearchResultSelected" />
     <toaster position="bottom-right" :theme="toastTheme" :visible-toasts="6" :gap="10" expand close-button close-button-position="top-right" />
   </div>

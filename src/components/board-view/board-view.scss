@@ -1,10 +1,94 @@
 @reference "tailwindcss";
 
 .board-view {
-  @apply flex flex-col flex-1 overflow-hidden h-full;
+  @apply flex flex-col flex-1 overflow-hidden h-full min-h-0;
+
+  .board-view__insights {
+    @apply flex flex-col gap-4 px-6 pt-6;
+  }
+
+  .board-view__chart-card {
+    @apply rounded-2xl border border-[var(--card-border)] bg-[var(--bg-card)] px-4 py-4 shadow-[var(--card-shadow)] sm:px-5;
+  }
+
+  .board-view__charts {
+    @apply grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_260px];
+  }
+
+  .board-view__chart-header {
+    @apply flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between;
+  }
+
+  .board-view__chart-eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)];
+  }
+
+  .board-view__chart-title {
+    @apply mt-1 text-lg font-bold text-[var(--text-primary)];
+  }
+
+  .board-view__chart-summary {
+    @apply text-sm text-[var(--text-secondary)];
+  }
+
+  .board-view__chart-bars {
+    @apply mt-4 flex flex-col gap-3;
+  }
+
+  .board-view__chart-row {
+    @apply flex flex-col gap-1.5;
+  }
+
+  .board-view__chart-row-top {
+    @apply flex items-center justify-between gap-4;
+  }
+
+  .board-view__chart-lane {
+    @apply text-sm font-medium text-[var(--text-primary)];
+  }
+
+  .board-view__chart-value {
+    @apply text-sm font-semibold text-[var(--text-secondary)];
+  }
+
+  .board-view__chart-track {
+    @apply h-2.5 overflow-hidden rounded-full bg-[var(--bg-column)];
+  }
+
+  .board-view__chart-fill {
+    @apply h-full rounded-full bg-[var(--accent)] [transition:var(--transition)];
+  }
+
+  .board-view__chart-card--doughnut {
+    @apply flex flex-col xl:px-4;
+  }
+
+  .board-view__doughnut-layout {
+    @apply mt-4 flex flex-1 items-center justify-center;
+  }
+
+  .board-view__doughnut-wrap {
+    @apply flex justify-center;
+  }
+
+  .board-view__doughnut {
+    @apply flex h-[188px] w-[188px] items-center justify-center rounded-full;
+  }
+
+  .board-view__doughnut-inner {
+    @apply flex h-[132px] w-[132px] flex-col items-center justify-center rounded-full border border-[var(--card-border)] bg-[var(--bg-card)];
+  }
+
+  .board-view__doughnut-value {
+    @apply text-3xl font-bold leading-none text-[var(--text-primary)];
+  }
+
+  .board-view__doughnut-label {
+    @apply mt-2 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)];
+  }
 
   .board-view__lanes {
-    @apply flex flex-row flex-1 gap-4 overflow-x-auto overflow-y-hidden items-start p-6;
+    @apply flex flex-row flex-1 min-h-0 gap-4 overflow-x-auto overflow-y-hidden items-stretch p-6;
   }
 
   .board-view__add-lane {

@@ -18,6 +18,10 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  onCloseToast: {
+    type: Function,
+    default: null,
+  },
 });
 
 // FUNCTION: ESCAPE REGEX INPUT
@@ -65,10 +69,13 @@ const segments = computed(() => {
 
 <template>
   <span class="realtime-toast-message">
-    <span
-      v-for="(segment, index) in segments"
-      :key="`${ index }-${ segment.text }`"
-      :class="segment.type ? `realtime-toast-message__${ segment.type }` : ''"
-    >{{ segment.text }}</span>
+    <span class="realtime-toast-message__content">
+      <span
+        v-for="(segment, index) in segments"
+        :key="`${ index }-${ segment.text }`"
+        :class="segment.type ? `realtime-toast-message__${ segment.type }` : ''"
+      >{{ segment.text }}</span>
+    </span>
+    <button v-if="onCloseToast" type="button" class="realtime-toast-message__close" aria-label="Close toast" @click="onCloseToast">×</button>
   </span>
 </template>
