@@ -1,0 +1,77 @@
+@reference "tailwindcss";
+
+.search-modal {
+  @apply fixed inset-0 z-[1200] flex items-start justify-center bg-[var(--modal-overlay)] px-4 py-8 sm:py-16;
+
+  .search-modal__dialog {
+    @apply flex w-full max-w-[760px] flex-col gap-4 rounded-3xl border border-[var(--menu-border)] bg-[var(--modal-bg)] p-5 shadow-[var(--shadow)] sm:p-6;
+  }
+
+  .search-modal__header {
+    @apply flex items-start justify-between gap-4;
+  }
+
+  .search-modal__title {
+    @apply text-xl font-bold text-[var(--text-primary)];
+  }
+
+  .search-modal__subtitle {
+    @apply mt-1 text-sm text-[var(--text-muted)];
+  }
+
+  .search-modal__close {
+    @apply inline-flex h-9 items-center justify-center rounded-lg border border-[var(--menu-border)] px-3 text-xs font-semibold text-[var(--text-secondary)] [transition:var(--transition)] hover:bg-[var(--menu-hover)] hover:text-[var(--text-primary)];
+  }
+
+  .search-modal__input {
+    @apply w-full rounded-2xl border border-[var(--input-border)] bg-transparent px-4 py-3 text-sm text-[var(--text-primary)] outline-none [transition:var(--transition)] placeholder:text-[var(--text-muted)] focus:border-[var(--input-border-focus)] focus:shadow-[var(--input-focus-shadow)];
+  }
+
+  .search-modal__status {
+    @apply -mt-1 text-xs font-medium text-[var(--text-muted)];
+  }
+
+  .search-modal__status--error {
+    @apply text-[var(--danger-text)];
+  }
+
+  .search-modal__results {
+    @apply flex max-h-[60vh] flex-col gap-2 overflow-y-auto;
+  }
+
+  .search-modal__state {
+    @apply rounded-2xl border border-dashed border-[var(--border-subtle)] px-4 py-6 text-center text-sm text-[var(--text-muted)];
+  }
+
+  .search-modal__state--error {
+    @apply border-[rgba(231,76,111,0.24)] text-[var(--danger-text)];
+  }
+
+  .search-modal__result {
+    @apply flex w-full flex-col gap-2 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-4 py-3 text-left [transition:var(--transition)] hover:border-[var(--input-border-focus)] hover:bg-[var(--bg-card-hover)];
+  }
+
+  .search-modal__result-top {
+    @apply flex items-start justify-between gap-3;
+  }
+
+  .search-modal__result-title {
+    @apply text-sm font-semibold text-[var(--text-primary)];
+  }
+
+  .search-modal__result-board {
+    @apply shrink-0 rounded-full bg-[var(--badge-bg)] px-2.5 py-1 text-xs font-semibold text-[var(--badge-text)];
+  }
+
+  .search-modal__result-description {
+    @apply line-clamp-2 text-sm text-[var(--text-secondary)];
+  }
+
+  .search-modal__result-meta {
+    @apply flex flex-wrap gap-2 text-xs text-[var(--text-muted)];
+  }
+
+  .search-modal__result-meta span {
+    @apply rounded-full border border-[var(--menu-border)] px-2.5 py-1;
+  }
+}

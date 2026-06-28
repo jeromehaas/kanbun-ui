@@ -14,6 +14,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  highlightedTaskId: {
+    type: [Number, String],
+    default: null,
+  },
 });
 
 // DEFINE EMITS
@@ -364,7 +368,7 @@ const handleTaskDropped = async ({ task, fromLaneId, toLane, newIndex }) => {
 <template>
   <div class="board-view">
     <div class="board-view__lanes">
-      <lane-column v-for="(lane, idx) in sortedLanes"  :key="lane.id" :lane="lane" :board-id="board.id" :is-first="idx === 0" :is-last="idx === sortedLanes.length - 1"  @move="handleMoveLane" @delete="handleDeleteLane" @open-add-task="handleOpenAddTask"  @edit-task="handleEditTask"  @delete-task="handleDeleteTask" @rename-lane="handleRenameLane" @task-dropped="handleTaskDropped"/>
+      <lane-column v-for="(lane, idx) in sortedLanes"  :key="lane.id" :lane="lane" :board-id="board.id" :is-first="idx === 0" :is-last="idx === sortedLanes.length - 1" :highlighted-task-id="highlightedTaskId"  @move="handleMoveLane" @delete="handleDeleteLane" @open-add-task="handleOpenAddTask"  @edit-task="handleEditTask"  @delete-task="handleDeleteTask" @rename-lane="handleRenameLane" @task-dropped="handleTaskDropped"/>
       <div class="board-view__add-lane">
         <template v-if="!addingLane">
           <button class="board-view__add-lane-btn" @click="startAddLane">+ Add Lane</button>

@@ -38,6 +38,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  highlightedTaskId: {
+    type: [Number, String],
+    default: null,
+  },
 });
 
 // DEFINE EMITS
@@ -176,7 +180,7 @@ const onDragChange = (event) => {
     </div>
     <draggable   :list="localTasks" group="tasks" item-key="id" class="lane-column__task-list" ghost-class="lane-column__task-ghost"  chosen-class="lane-column__task-chosen"  drag-class="lane-column__task-drag" :animation="180" @change="onDragChange">
       <template #item="{ element: task }">
-        <task-card :task="task" @edit="$emit('editTask', task, lane)" @delete="$emit('deleteTask', task, lane)"/>
+        <task-card :task="task" :highlighted="task.id === highlightedTaskId" @edit="$emit('editTask', task, lane)" @delete="$emit('deleteTask', task, lane)"/>
       </template>
     </draggable>
     <div class="lane-column__footer">
