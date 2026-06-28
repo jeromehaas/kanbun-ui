@@ -9,6 +9,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  highlighted: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 // DEFINE EMITS
@@ -23,7 +27,7 @@ const handleClick = () => {
 </script>
 
 <template>
-  <div class="task-card" @click="handleClick">
+  <div class="task-card" :class="{ 'task-card--highlighted': highlighted }" :data-task-id="task.id" @click="handleClick">
     <span class="task-card__badge">Task</span>
     <p class="task-card__title">{{ task.title }}</p>
     <template v-if="task.description">

@@ -7,9 +7,11 @@ import { Toaster, toast as sonnerToast } from 'vue-sonner';
 import AuthPanel from '@/components/auth-panel/auth-panel.vue';
 import BoardView from '@/components/board-view/board-view.vue';
 import BoardDropdown from '@/components/board-dropdown/board-dropdown.vue';
+import SearchModal from '@/components/search-modal/search-modal.vue';
 import RealtimeToastMessage from '@/components/realtime-toast-message/realtime-toast-message.vue';
 import { signIn as apiSignIn, signUp as apiSignUp, verifyTwoFactor as apiVerifyTwoFactor } from '@/api/auth.js';
 import { createBoard as apiCreateBoard, deleteBoard as apiDeleteBoard, getBoard, getBoards, updateBoard as apiUpdateBoard } from '@/api/boards.js';
+import { searchTasks as apiSearchTasks } from '@/api/search.js';
 import { clearStoredAuthSession, getStoredAuthSession, setStoredAuthSession } from '@/auth/session.js';
 import { createBoardSocketManager } from '@/realtime/board-socket.js';
 
@@ -38,12 +40,25 @@ const renameBoardRef = ref(null);
 const createBoardOpen = ref(false);
 const createBoardName = ref('');
 const createBoardRef = ref(null);
+const searchModalOpen = ref(false);
+const searchQuery = ref('');
+const searchResults = ref([]);
+const searchLoading = ref(false);
+const searchError = ref('');
+const searchHasResolved = ref(false);
+const highlightedTaskId = ref(null);
 const isAuthenticated = computed(() => Boolean(authToken.value));
 const toastTheme = computed(() => (isDark.value ? 'dark' : 'light'));
 const realtimeToastComponent = markRaw(RealtimeToastMessage);
 const defaultToastDuration = 5000;
 const errorToastDuration = 6500;
 let boardLoadRequestId = 0;
+let searchRequestId = 0;
+let searchThrottleTimer = null;
+let lastShiftKeyPressedAt = 0;
+let highlightedTaskTimer = null;
+const searchThrottleDelay = 280;
+const searchHighlightDuration = 4000;
 
 // FUNCTION: NORMALIZE TOAST MESSAGE
 const normalizeToastMessage = (message) => {
@@ -192,6 +207,238 @@ const getApiErrorMessage = (error, fallback) => {
     return  error?.response?.data?.ERROR || fallback;
 };
 
+// FUNCTION: CLEAR SEARCH THROTTLE TIMER
+const clearSearchThrottleTimer = () => {
+
+  // CLEAR TIMER IF AVAILABLE
+  if (searchThrottleTimer && typeof window !== 'undefined') {
+    window.clearTimeout(searchThrottleTimer);
+  }
+
+  // RESET TIMER STATE
+  searchThrottleTimer = null;
+};
+
+// FUNCTION: CLEAR HIGHLIGHT TIMER
+const clearHighlightedTaskTimer = () => {
+
+  // CLEAR TIMER IF AVAILABLE
+  if (highlightedTaskTimer && typeof window !== 'undefined') {
+    window.clearTimeout(highlightedTaskTimer);
+  }
+
+  // RESET TIMER STATE
+  highlightedTaskTimer = null;
+};
+
+// FUNCTION: RESET TASK SEARCH STATE
+const resetTaskSearchState = () => {
+
+  // INVALIDATE IN-FLIGHT REQUESTS
+  searchRequestId += 1;
+
+  // RESET SEARCH UI STATE
+  searchQuery.value = '';
+  searchResults.value = [];
+  searchLoading.value = false;
+  searchError.value = '';
+  searchHasResolved.value = false;
+  lastShiftKeyPressedAt = 0;
+
+  // CLEAR PENDING TIMER
+  clearSearchThrottleTimer();
+};
+
+// HANDLER: CLOSE SEARCH MODAL
+const closeSearchModal = () => {
+
+  // UPDATE SEARCH UI
+  searchModalOpen.value = false;
+  resetTaskSearchState();
+};
+
+// HANDLER: OPEN SEARCH MODAL
+const openSearchModal = () => {
+
+  // STOP, IF USER IS NOT AUTHENTICATED
+  if (!isAuthenticated.value) {
+    return;
+  }
+
+  // OPEN MODAL
+  searchModalOpen.value = true;
+  searchError.value = '';
+  searchHasResolved.value = false;
+};
+
+// FUNCTION: CHECK IF TARGET IS EDITABLE
+const isEditableTarget = (target) => {
+
+  // RETURN
+  return target instanceof HTMLElement && (
+    target.isContentEditable ||
+    ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)
+  );
+};
+
+// FUNCTION: SCROLL TO TASK CARD
+const scrollToTaskCard = (taskId) => {
+
+  // GET TASK ELEMENT
+  const taskElement = document.querySelector(`[data-task-id="${ taskId }"]`);
+
+  // STOP, IF TASK ELEMENT IS NOT AVAILABLE
+  if (!taskElement) {
+    return;
+  }
+
+  // SCROLL TASK INTO VIEW
+  taskElement.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center',
+    inline: 'center',
+  });
+};
+
+// FUNCTION: FOCUS TASK CARD
+const focusTaskCard = async (taskId) => {
+
+  // STOP, IF NO TASK ID IS AVAILABLE
+  if (!taskId) {
+    return;
+  }
+
+  // HIGHLIGHT THE SELECTED TASK
+  highlightedTaskId.value = taskId;
+
+  // WAIT FOR THE BOARD TO RENDER
+  await nextTick();
+
+  // SCROLL AND AUTO-CLEAR THE HIGHLIGHT
+  if (typeof window !== 'undefined') {
+    window.requestAnimationFrame(() => scrollToTaskCard(taskId));
+    clearHighlightedTaskTimer();
+    highlightedTaskTimer = window.setTimeout(() => {
+      if (highlightedTaskId.value === taskId) {
+        highlightedTaskId.value = null;
+      }
+
+      highlightedTaskTimer = null;
+    }, searchHighlightDuration);
+  }
+};
+
+// FUNCTION: RUN TASK SEARCH
+const runTaskSearch = async (query) => {
+
+  // TRACK THE REQUEST
+  const requestId = ++searchRequestId;
+  searchLoading.value = true;
+  searchError.value = '';
+
+  // TRY TO SEARCH TASKS
+  try {
+    const res = await apiSearchTasks(query);
+
+    // STOP, IF THE REQUEST IS STALE
+    if (requestId !== searchRequestId || !searchModalOpen.value || searchQuery.value.trim() !== query) {
+      return;
+    }
+
+    // UPDATE SEARCH RESULTS
+    searchResults.value = res.data;
+    searchHasResolved.value = true;
+
+  // HANDLE ERRORS
+  } catch (error) {
+    if (requestId !== searchRequestId || isUnauthorizedError(error)) {
+      return;
+    }
+
+    searchError.value = getApiErrorMessage(error, 'Failed to search cards');
+    searchHasResolved.value = true;
+
+  // FINALLY
+  } finally {
+    if (requestId === searchRequestId) {
+      searchLoading.value = false;
+    }
+  }
+};
+
+// FUNCTION: FLUSH TASK SEARCH
+const flushTaskSearch = async () => {
+
+  // CLEAR THE THROTTLE TIMER
+  clearSearchThrottleTimer();
+
+  // GET THE CURRENT QUERY
+  const query = searchQuery.value.trim();
+
+  // STOP, IF THERE IS NOTHING TO SEARCH
+  if (!searchModalOpen.value || !query) {
+    return;
+  }
+
+  // RUN SEARCH
+  await runTaskSearch(query);
+};
+
+// FUNCTION: SCHEDULE TASK SEARCH
+const scheduleTaskSearch = () => {
+
+  // GET TRIMMED QUERY
+  const query = searchQuery.value.trim();
+  searchError.value = '';
+  clearSearchThrottleTimer();
+
+  // RESET RESULTS FOR EMPTY SEARCHES
+  if (!searchModalOpen.value || !query) {
+    searchRequestId += 1;
+    searchResults.value = [];
+    searchLoading.value = false;
+    searchHasResolved.value = false;
+    return;
+  }
+
+  // MARK THE CURRENT QUERY AS PENDING
+  searchHasResolved.value = false;
+
+  // START A FRESH DELAY WINDOW
+  if (typeof window !== 'undefined') {
+    searchThrottleTimer = window.setTimeout(() => {
+      void flushTaskSearch();
+    }, searchThrottleDelay);
+  }
+};
+
+// HANDLER: GLOBAL KEYDOWN
+const handleGlobalKeydown = (event) => {
+
+  // STOP, IF THE SHORTCUT DOES NOT APPLY
+  if (
+    !isAuthenticated.value ||
+    event.key !== 'Shift' ||
+    event.repeat ||
+    isEditableTarget(event.target)
+  ) {
+    return;
+  }
+
+  // CHECK FOR DOUBLE-SHIFT
+  const pressedAt = Date.now();
+
+  if (pressedAt - lastShiftKeyPressedAt <= 300) {
+    event.preventDefault();
+    lastShiftKeyPressedAt = 0;
+    openSearchModal();
+    return;
+  }
+
+  // TRACK THE LATEST SHIFT PRESS
+  lastShiftKeyPressedAt = pressedAt;
+};
+
 // FUNCTION: GET ACTIVE BOARD ID
 const getActiveBoardId = () => {
 
@@ -240,6 +487,11 @@ const resetBoardState = () => {
 
   // INVALIDATE IN-FLIGHT REQUESTS
   boardLoadRequestId += 1;
+
+  // RESET SEARCH AND HIGHLIGHT STATE
+  closeSearchModal();
+  clearHighlightedTaskTimer();
+  highlightedTaskId.value = null;
 
   // CLOSE SOCKETS AND RESET UI
   closeBoardSocket();
@@ -379,6 +631,26 @@ const selectBoard = async (id) => {
 
   // LOAD BOARD
   await loadBoard(id);
+};
+
+// HANDLER: HANDLE SEARCH RESULT SELECTED
+const handleSearchResultSelected = async (result) => {
+
+  // CLOSE THE SEARCH MODAL FIRST
+  closeSearchModal();
+
+  // STOP, IF THE RESULT IS INVALID
+  if (!result?.task_id || !result?.board_id) {
+    return;
+  }
+
+  // LOAD THE TARGET BOARD IF NEEDED
+  if (activeBoardId.value !== result.board_id) {
+    await selectBoard(result.board_id);
+  }
+
+  // FOCUS THE MATCHED TASK
+  await focusTaskCard(result.task_id);
 };
 
 // FUNCTION: LOAD AUTHENTICATED WORKSPACE
@@ -606,6 +878,11 @@ watch(activeBoardId, (boardId) => {
   }
 });
 
+// WATCH: TASK SEARCH QUERY
+watch(searchQuery, () => {
+  scheduleTaskSearch();
+});
+
 // HANDLER: START RENAME BOARD
 const startRenameBoard = () => {
 
@@ -757,6 +1034,7 @@ onMounted(async () => {
 
   // LISTEN FOR EXPIRED SESSIONS
   window.addEventListener('kanbun:unauthorized', handleUnauthorizedSession);
+  window.addEventListener('keydown', handleGlobalKeydown);
 
   // RESTORE SESSION IF AVAILABLE
   if (isAuthenticated.value) {
@@ -770,8 +1048,13 @@ onBeforeUnmount(() => {
   // CLOSE SOCKET
   closeBoardSocket();
 
+  // CLEAR SEARCH TIMERS
+  clearSearchThrottleTimer();
+  clearHighlightedTaskTimer();
+
   // CLEAN UP GLOBAL LISTENER
   window.removeEventListener('kanbun:unauthorized', handleUnauthorizedSession);
+  window.removeEventListener('keydown', handleGlobalKeydown);
 });
 </script>
 
@@ -848,7 +1131,7 @@ onBeforeUnmount(() => {
         </div>
       </template>
       <template v-else-if="activeBoard">
-        <board-view :board="activeBoard" @refresh="loadBoard(activeBoardId)" @delete="handleDeleteBoard"/>
+        <board-view :board="activeBoard" :highlighted-task-id="highlightedTaskId" @refresh="loadBoard(activeBoardId)" @delete="handleDeleteBoard"/>
       </template>
       <template v-else>
         <div class="app__state">
@@ -856,14 +1139,7 @@ onBeforeUnmount(() => {
         </div>
       </template>
     </main>
-    <Toaster
-      position="bottom-right"
-      :theme="toastTheme"
-      :visible-toasts="6"
-      :gap="10"
-      expand
-      close-button
-      close-button-position="top-right"
-    />
+    <search-modal :open="searchModalOpen" :query="searchQuery" :results="searchResults" :loading="searchLoading"  :error="searchError" :has-searched="searchHasResolved" @close="closeSearchModal"  @update:query="searchQuery = $event" @select="handleSearchResultSelected" />
+    <toaster position="bottom-right" :theme="toastTheme" :visible-toasts="6" :gap="10" expand close-button close-button-position="top-right" />
   </div>
 </template>
